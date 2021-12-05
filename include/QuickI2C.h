@@ -24,6 +24,17 @@ enum class QuickI2CStatus : int8_t {
     VerifyMismatch = 4 // Write succeeded, but verify failed
 };
 
+/**
+ * Define a Read-Write register and its associated functions on
+ * 
+ * DO NOT terminate this macro call with a semicolon!
+ */
+#define QI2C_DEFINE_REGISTER32_RW(name, addr)\
+static constexpr uint8_t name = addr;\
+inline QuickI2CStatus read##name(uint32_t* out) {return read32BitRegister((addr), out);}\
+inline QuickI2CStatus write##name(uint32_t val) {return write32BitRegister((addr), val);}\
+inline QuickI2CStatus writeAndVerify##name(uint32_t val, uint8_t* rxbuf) {return writeAndVerify32BitRegister(addr, val, rxbuf);}\
+
 const char* QuickI2CStatusToString(QuickI2CStatus status);
 
 /**
@@ -45,6 +56,7 @@ const char* QuickI2CStatusToString(QuickI2CStatus status);
  * Either ensure that not concurrent accesses are possible or perform locking.
  */
 class QuickI2CDevice {
+public:
     QuickI2CDevice(uint16_t address, TwoWire& wire = Wire, uint32_t i2cClockSpeed = 400000);
 
     QuickI2CStatus read8BitRegister(uint8_t registerAddress, uint8_t* buf);
@@ -70,7 +82,6 @@ class QuickI2CDevice {
      */
     uint32_t dataBytesReadUntilTimeout;
 
-    uint
 protected:
     /**
      * Compute the maximum timeout in milliseconds

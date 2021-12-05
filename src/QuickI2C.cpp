@@ -12,7 +12,7 @@ const char* QuickI2CStatusToString(QuickI2CStatus status) {
     } else
 }
 
-QuickI2CDevice::QuickI2CDevice(uint16_t address, TwoWire& wire = Wire, uint32_t i2cClockSpeed = 400000) : wire(wire), address(address), i2cClockSpeed(i2cClockSpeed) {
+QuickI2CDevice::QuickI2CDevice(uint16_t address, TwoWire& wire, uint32_t i2cClockSpeed) : wire(wire), address(address), i2cClockSpeed(i2cClockSpeed) {
 
 }
 
