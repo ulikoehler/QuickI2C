@@ -27,13 +27,24 @@ enum class QuickI2CStatus : int8_t {
 /**
  * Define a Read-Write register and its associated functions on
  * 
- * DO NOT terminate this macro call with a semicolon!
+ * DO NOT terminate these macro calls with a semicolon!
  */
+#define QI2C_DEFINE_REGISTER8_RW(name, addr)\
+static constexpr uint8_t name = addr;\
+inline QuickI2CStatus read##name(uint8_t* out) {return read8BitRegister((addr), out);}\
+inline QuickI2CStatus write##name(uint8_t val) {return write8BitRegister((addr), val);}\
+inline QuickI2CStatus writeAndVerify##name(uint8_t val, uint8_t* rxbuf) {return writeAndVerify8BitRegister(addr, val, rxbuf);}
+#define QI2C_DEFINE_REGISTER16_RW(name, addr)\
+static constexpr uint8_t name = addr;\
+inline QuickI2CStatus read##name(uint16_t* out) {return read16BitRegister((addr), out);}\
+inline QuickI2CStatus write##name(uint16_t val) {return write16BitRegister((addr), val);}\
+inline QuickI2CStatus writeAndVerify##name(uint16_t val, uint8_t* rxbuf) {return writeAndVerify16BitRegister(addr, val, rxbuf);}
 #define QI2C_DEFINE_REGISTER32_RW(name, addr)\
 static constexpr uint8_t name = addr;\
 inline QuickI2CStatus read##name(uint32_t* out) {return read32BitRegister((addr), out);}\
 inline QuickI2CStatus write##name(uint32_t val) {return write32BitRegister((addr), val);}\
-inline QuickI2CStatus writeAndVerify##name(uint32_t val, uint8_t* rxbuf) {return writeAndVerify32BitRegister(addr, val, rxbuf);}\
+inline QuickI2CStatus writeAndVerify##name(uint32_t val, uint8_t* rxbuf) {return writeAndVerify32BitRegister(addr, val, rxbuf);}
+
 
 const char* QuickI2CStatusToString(QuickI2CStatus status);
 
