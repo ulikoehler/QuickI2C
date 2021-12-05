@@ -13,10 +13,11 @@
       {
         "name": "Uli Köhler",
         "email": "github@techoverflow.net",
-        "url": "https://techoverflow.net"
+        "url": "https://techoverflow.net",
+        "maintainer": true
       }
     ],
-    "license": "MIT",
+    "license": "Apache 2.0",
     "homepage": "https://github.com/ulikoehler/QuickI2C",
     "dependencies": {
       "Wire": "*"
