@@ -62,7 +62,7 @@ public:
     QuickI2CStatus read8BitRegister(uint8_t registerAddress, uint8_t* buf);
     QuickI2CStatus read16BitRegister(uint8_t registerAddress, uint16_t* buf);
     QuickI2CStatus read32BitRegister(uint8_t registerAddress, uint32_t* buf);
-    QuickI2CStatus readData(uint8_t registerAddress, uint32_t* buf, size_t len);
+    QuickI2CStatus readData(uint8_t registerAddress, uint8_t* buf, size_t len);
 
     QuickI2CStatus write8BitRegister(uint8_t registerAddress, uint8_t value);
     QuickI2CStatus write16BitRegister(uint8_t registerAddress, uint16_t value);

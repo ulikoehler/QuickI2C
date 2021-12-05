@@ -9,11 +9,12 @@ const char* QuickI2CStatusToString(QuickI2CStatus status) {
         return "Data timeout";
     } else if(status == QuickI2CStatus::VerifyMismatch) {
         return "Verify mismatch";
-    } else
+    } else {
+        return "Unknown";
+    }
 }
 
 QuickI2CDevice::QuickI2CDevice(uint16_t address, TwoWire& wire, uint32_t i2cClockSpeed) : wire(wire), address(address), i2cClockSpeed(i2cClockSpeed) {
-
 }
 
 QuickI2CStatus QuickI2CDevice::writeData(uint8_t registerAddress, const uint8_t* buf, size_t len) {
@@ -26,7 +27,7 @@ QuickI2CStatus QuickI2CDevice::writeData(uint8_t registerAddress, const uint8_t*
     wire.write(buf, len);
     wire.endTransmission();
     // Check for missing
-    if(wire.lastError == I2C_ERROR_ACK) {
+    if(wire.lastError() == I2C_ERROR_ACK) {
         return QuickI2CStatus::SlaveNotResponding;
     }
     return QuickI2CStatus::OK;
@@ -41,11 +42,11 @@ QuickI2CStatus QuickI2CDevice::readData(uint8_t registerAddress, uint8_t* buf, s
     wire.write(registerAddress);
     wire.endTransmission();
     // Check for missing
-    if(wire.lastError == I2C_ERROR_ACK) {
+    if(wire.lastError() == I2C_ERROR_ACK) {
         return QuickI2CStatus::SlaveNotResponding;
     }
     // Receive data
-    wire.requestFrom(this->address, bytes);
+    wire.requestFrom(this->address, len);
     size_t actuallyRead = wire.readBytes(buf, len);
     if(actuallyRead < len) {
         // Did not read enough bytes
@@ -55,7 +56,7 @@ QuickI2CStatus QuickI2CDevice::readData(uint8_t registerAddress, uint8_t* buf, s
     return QuickI2CStatus::OK;
 }
 
-QuickI2CStatus QuickI2CDevice::writeAndVerifyData(uint8_t registerAddress, const uint8_t* buf, size_t len) {
+QuickI2CStatus QuickI2CDevice::writeAndVerifyData(uint8_t registerAddress, const uint8_t* buf, size_t len, uint8_t* rxbuf) {
     // Try to write - if it fails, do not try to verify
     QuickI2CStatus rc = writeData(registerAddress, buf, len);
     if(rc != QuickI2CStatus::OK) {
@@ -91,11 +92,11 @@ QuickI2CStatus QuickI2CDevice::write8BitRegister(uint8_t registerAddress, uint8_
 }
 
 QuickI2CStatus QuickI2CDevice::write16BitRegister(uint8_t registerAddress, uint16_t value) {
-    return writeData(registerAddress, (uint8_t*)&value, len);
+    return writeData(registerAddress, (uint8_t*)&value, 2);
 }
 
 QuickI2CStatus QuickI2CDevice::write32BitRegister(uint8_t registerAddress, uint32_t value) {
-    return writeData(registerAddress, (uint8_t*)&value, len);
+    return writeData(registerAddress, (uint8_t*)&value, 4);
 }
 
 QuickI2CStatus QuickI2CDevice::writeAndVerify8BitRegister(uint8_t registerAddress, uint8_t value, uint8_t* rxbuf) {
@@ -103,11 +104,11 @@ QuickI2CStatus QuickI2CDevice::writeAndVerify8BitRegister(uint8_t registerAddres
 }
 
 QuickI2CStatus QuickI2CDevice::writeAndVerify16BitRegister(uint8_t registerAddress, uint16_t value, uint8_t* rxbuf) {
-    return writeAndVerifyData(registerAddress, (uint8_t*)&value, len, rxbuf);
+    return writeAndVerifyData(registerAddress, (uint8_t*)&value, 2, rxbuf);
 }
 
 QuickI2CStatus QuickI2CDevice::writeAndVerify32BitRegister(uint8_t registerAddress, uint32_t value, uint8_t* rxbuf) {
-    return writeAndVerifyData(registerAddress, (uint8_t*)&value, len, rxbuf);
+    return writeAndVerifyData(registerAddress, (uint8_t*)&value, 4, rxbuf);
 }
 
 
