@@ -20,7 +20,7 @@ QuickI2CDevice::QuickI2CDevice(uint16_t address, TwoWire& wire, uint32_t i2cCloc
 QuickI2CStatus QuickI2CDevice::writeData(uint8_t registerAddress, const uint8_t* buf, size_t len) {
     // Configure clock speed & timeout
     wire.setClock(this->i2cClockSpeed);
-    wire.setTimeout(this->computeTimeout(len));
+    // Don't need timeout for write since we will never read
     // Transmit address
     wire.beginTransmission(this->address);
     wire.write(registerAddress);
@@ -62,6 +62,8 @@ QuickI2CStatus QuickI2CDevice::writeAndVerifyData(uint8_t registerAddress, const
     if(rc != QuickI2CStatus::OK) {
         return rc;
     }
+    // Insert grace time between write and read
+    delay(delayBetweenWriteAndRead);
     // Read back data for verify
     rc = readData(registerAddress, rxbuf, len);
     if(rc != QuickI2CStatus::OK) {
