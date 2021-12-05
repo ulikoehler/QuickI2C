@@ -1,0 +1,26 @@
+{
+    "name": "QuickI2C",
+    "version": "0.1",
+    "description": "Practical Arduino Wire I2C wrapper, allowing direct register access with proper error handling.",
+    "keywords": "I2C, Wire, Arduino",
+    "repository":
+    {
+      "type": "git",
+      "url": "https://github.com/ulikoehler/QuickI2C.git"
+    },
+    "authors":
+    [
+      {
+        "name": "Uli Köhler",
+        "email": "github@techoverflow.net",
+        "url": "https://techoverflow.net"
+      }
+    ],
+    "license": "MIT",
+    "homepage": "https://github.com/ulikoehler/QuickI2C",
+    "dependencies": {
+      "Wire": "*"
+    },
+    "frameworks": "arduino",
+    "platforms": "*"
+}
