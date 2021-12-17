@@ -25,12 +25,23 @@ QuickI2CStatus QuickI2CDevice::writeData(uint8_t registerAddress, const uint8_t*
     wire.beginTransmission(this->address);
     wire.write(registerAddress);
     wire.write(buf, len);
+#if ESP_ARDUINO_VERSION_MAJOR == 1
     wire.endTransmission();
     // Check for missing
     if(wire.lastError() == I2C_ERROR_ACK) {
         return QuickI2CStatus::SlaveNotResponding;
     }
     return QuickI2CStatus::OK;
+#else // ESP_ARDUINO_VERSION_MAJOR == 2
+    uint8_t lastError =  wire.endTransmission();
+    // "Magic" values: See https://github.com/espressif/arduino-esp32/blob/7bb30b3cf82426a6b6947b9f69dffa3b8f95dbc1/libraries/Wire/src/Wire.cpp#L348
+    // TODO recheck
+    if(lastError == 5) {
+        return QuickI2CStatus::DataTimeout;
+    } else {
+        return QuickI2CStatus::OK;
+    }
+#endif
 }
 
 QuickI2CStatus QuickI2CDevice::readData(uint8_t registerAddress, uint8_t* buf, size_t len) {
@@ -42,9 +53,21 @@ QuickI2CStatus QuickI2CDevice::readData(uint8_t registerAddress, uint8_t* buf, s
     wire.write(registerAddress);
     wire.endTransmission();
     // Check for missing
-    if(wire.lastError() == I2C_ERROR_ACK) {
-        return QuickI2CStatus::SlaveNotResponding;
-    }
+    #if ESP_ARDUINO_VERSION_MAJOR == 1
+        wire.endTransmission();
+        // Check for missing
+        if(wire.lastError() == I2C_ERROR_ACK) {
+            return QuickI2CStatus::SlaveNotResponding;
+        }
+        return QuickI2CStatus::OK;
+    #else // ESP_ARDUINO_VERSION_MAJOR == 2
+        uint8_t lastError =  wire.endTransmission();
+        // "Magic" values: See https://github.com/espressif/arduino-esp32/blob/7bb30b3cf82426a6b6947b9f69dffa3b8f95dbc1/libraries/Wire/src/Wire.cpp#L348
+        // TODO recheck
+        if(lastError == 5) {
+            return QuickI2CStatus::DataTimeout;
+        }
+    #endif
     // Receive data
     wire.requestFrom(this->address, len);
     size_t actuallyRead = wire.readBytes(buf, len);
