@@ -7,3 +7,12 @@ This is intended to be similar to [AdaFruit BusIO](https://github.com/adafruit/A
 ## How?
 
 QuickI2C provides classes macro tricks to automatically define appropriate functions for any register, with zero memory footprint for additional registers.
+
+## Installation
+
+In PlatformIO, add the library by adding the following to `platformio.ini`:
+
+```ini
+lib_deps =
+    ulikoehler/QuickI2C@^1.1
+```
