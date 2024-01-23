@@ -79,16 +79,16 @@ QuickI2CStatus QuickI2CDevice::readData(uint8_t registerAddress, uint8_t* buf, s
     return QuickI2CStatus::OK;
 }
 
-QuickI2CStatus QuickI2CDevice::writeAndVerifyData(uint8_t registerAddress, const uint8_t* buf, size_t len, uint8_t* rxbuf) {
+QuickI2CStatus QuickI2CDevice::writeAndVerifyData(uint8_t readAddress, uint8_t writeAddress, const uint8_t* buf, size_t len) {
     // Try to write - if it fails, do not try to verify
-    QuickI2CStatus rc = writeData(registerAddress, buf, len);
+    QuickI2CStatus rc = writeData(writeAddress, buf, len);
     if(rc != QuickI2CStatus::OK) {
         return rc;
     }
     // Insert grace time between write and read
     delay(delayBetweenWriteAndRead);
     // Read back data for verify
-    rc = readData(registerAddress, rxbuf, len);
+    rc = readData(readAddress, rxbuf, len);
     if(rc != QuickI2CStatus::OK) {
         return rc;
     }
@@ -100,42 +100,73 @@ QuickI2CStatus QuickI2CDevice::writeAndVerifyData(uint8_t registerAddress, const
     return QuickI2CStatus::OK;
 }
 
-QuickI2CStatus QuickI2CDevice::read8BitRegister(uint8_t registerAddress, uint8_t* buf) {
-    return readData(registerAddress, buf, 1);
+tl::expected<uint8_t, QuickI2CStatus> QuickI2CDevice::read8BitRegister(uint8_t registerAddress) {
+    uint8_t ret = 0;
+    QuickI2CStatus status = readData(registerAddress, (uint8_t*)&ret, 1);
+    if(status != QuickI2CStatus::OK) {
+        return tl::unexpected<QuickI2CStatus>(status);
+    }
+    return ret;
 }
 
-QuickI2CStatus QuickI2CDevice::read16BitRegister(uint8_t registerAddress, uint16_t* buf) {
-    return readData(registerAddress, (uint8_t*)buf, 2);
+tl::expected<uint16_t, QuickI2CStatus> QuickI2CDevice::read16BitRegister(uint8_t registerAddress) {
+    uint16_t ret = 0;
+    QuickI2CStatus status = readData(registerAddress, (uint8_t*)&ret, 2);
+    if(status != QuickI2CStatus::OK) {
+        return tl::unexpected<QuickI2CStatus>(status);
+    }
+    return ret;
 }
 
-QuickI2CStatus QuickI2CDevice::read32BitRegister(uint8_t registerAddress, uint32_t* buf) {
-    return readData(registerAddress, (uint8_t*)buf, 4);
+tl::expected<uint32_t, QuickI2CStatus> QuickI2CDevice::read24BitRegister(uint8_t registerAddress) {
+    uint32_t ret = 0;
+    QuickI2CStatus status = readData(registerAddress, (uint8_t*)&ret, 3);
+    if(status != QuickI2CStatus::OK) {
+        return tl::unexpected<QuickI2CStatus>(status);
+    }
+    return ret;
+}
+
+tl::expected<uint32_t, QuickI2CStatus> QuickI2CDevice::read32BitRegister(uint8_t registerAddress) {
+    uint32_t ret = 0;
+    QuickI2CStatus status = readData(registerAddress, (uint8_t*)&ret, 4);
+    if(status != QuickI2CStatus::OK) {
+        return tl::unexpected<QuickI2CStatus>(status);
+    }
+    return ret;
 }
 
 QuickI2CStatus QuickI2CDevice::write8BitRegister(uint8_t registerAddress, uint8_t value) {
-    return writeData(registerAddress, &value, 1);
+    return writeData(registerAddress, (uint8_t*)&value, 1);
 }
 
 QuickI2CStatus QuickI2CDevice::write16BitRegister(uint8_t registerAddress, uint16_t value) {
     return writeData(registerAddress, (uint8_t*)&value, 2);
 }
 
+QuickI2CStatus QuickI2CDevice::write24BitRegister(uint8_t registerAddress, uint32_t value) {
+    return writeData(registerAddress, (uint8_t*)&value, 3);
+}
+
 QuickI2CStatus QuickI2CDevice::write32BitRegister(uint8_t registerAddress, uint32_t value) {
     return writeData(registerAddress, (uint8_t*)&value, 4);
 }
 
-QuickI2CStatus QuickI2CDevice::writeAndVerify8BitRegister(uint8_t registerAddress, uint8_t value, uint8_t* rxbuf) {
-    return writeAndVerifyData(registerAddress, &value, 1, rxbuf);
+QuickI2CStatus QuickI2CDevice::writeAndVerify8BitRegister(uint8_t readAddress, uint8_t writeAddress, uint8_t value) {
+    return writeAndVerifyData(readAddress, writeAddress, (uint8_t*)&value, 1);
 }
 
-QuickI2CStatus QuickI2CDevice::writeAndVerify16BitRegister(uint8_t registerAddress, uint16_t value, uint8_t* rxbuf) {
-    return writeAndVerifyData(registerAddress, (uint8_t*)&value, 2, rxbuf);
+QuickI2CStatus QuickI2CDevice::writeAndVerify16BitRegister(uint8_t readAddress, uint8_t writeAddress, uint16_t value) {
+    return writeAndVerifyData(readAddress, writeAddress, (uint8_t*)&value, 2);
 }
 
-QuickI2CStatus QuickI2CDevice::writeAndVerify32BitRegister(uint8_t registerAddress, uint32_t value, uint8_t* rxbuf) {
-    return writeAndVerifyData(registerAddress, (uint8_t*)&value, 4, rxbuf);
+QuickI2CStatus QuickI2CDevice::writeAndVerify24BitRegister(uint8_t readAddress, uint8_t writeAddress, uint32_t value) {
+    return writeAndVerifyData(readAddress, writeAddress, (uint8_t*)&value, 3);
 }
 
+QuickI2CStatus QuickI2CDevice::writeAndVerify32BitRegister(uint8_t readAddress, uint8_t writeAddress, uint32_t value) {
+    return writeAndVerifyData(readAddress, writeAddress, (uint8_t*)&value, 4);
+}
 
 uint32_t QuickI2CDevice::computeTimeout(uint32_t bytesToTransfer) {
     uint32_t numBits = bytesToTransfer * 9; // 8 data bits + 1 ACK/NACK bit per byte
