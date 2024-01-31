@@ -34,10 +34,10 @@ QuickI2CDevice::QuickI2CDevice(
     ) :
     #ifdef QUICKI2C_DRIVER_ARDUINO
     wire(wire),
-    #elif defined(QUICKI2C_DRIVER_ESPIDF),
+    #elif defined(QUICKI2C_DRIVER_ESPIDF)
     port(port),
     #endif
-    deviceAddress(address), i2cClockSpeed(i2cClockSpeed), timeout(timeout) {
+    deviceAddress(address), timeout(timeout), i2cClockSpeed(i2cClockSpeed) {
 }
 
 QuickI2CStatus QuickI2CDevice::writeData(uint8_t registerAddress, const uint8_t* buf, size_t len) {
@@ -69,7 +69,7 @@ QuickI2CStatus QuickI2CDevice::writeData(uint8_t registerAddress, const uint8_t*
     #elif defined(QUICKI2C_DRIVER_ESPIDF)
         txbuf[0] = registerAddress;
         memcpy(txbuf + 1, buf, len);
-        esp_err_t err = i2c_master_write(port, deviceAddress, &registerAddress, 1, txbuf, len + 1 /* reg addr + data*/, timeout / portTICK_PERIOD_MS);
+        esp_err_t err = i2c_master_write_to_device(port, deviceAddress, this->txbuf, len + 1 /* reg addr + data*/, timeout / portTICK_PERIOD_MS);
         switch(err) {
             case ESP_OK:
                 return QuickI2CStatus::OK;
@@ -229,7 +229,7 @@ QuickI2CStatus QuickI2CDevice::writeAndVerify32BitRegister(uint8_t readAddress, 
     return writeAndVerifyData(readAddress, writeAddress, (uint8_t*)&value, 4);
 }
 
-uint32_t QuickI2CDevice::computeTimeout(uint32_t bytesToTransfer) {
+uint32_t QuickI2CDevice::computeTimeout(size_t bytesToTransfer) {
     uint32_t numBits = bytesToTransfer * 9; // 8 data bits + 1 ACK/NACK bit per byte
     // NOTE: We avoid to use floating point arithmetic here.
     uint32_t durationMilliseconds = numBits * 1000 / this->i2cClockSpeed; // This will ALWAYS be rounded down!
