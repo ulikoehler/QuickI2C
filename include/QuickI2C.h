@@ -6,7 +6,7 @@
 // Find the correct driver
 #ifdef ARDUINO
     #define QUICKI2C_DRIVER_ARDUINO
-#elif defined(ESP_IDF_VERSION_MAJOR)
+#elif defined(IDF_VER) && !defined(ARDUINO)
     #define QUICKI2C_DRIVER_ESPIDF
 #else
     #error "Could not determine driver (Arduino or ESP-IDF)"
