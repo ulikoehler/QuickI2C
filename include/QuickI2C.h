@@ -1,9 +1,25 @@
 #pragma once
 
-#include <Arduino.h>
 #include <stdint.h>
 #include <stddef.h>
+
+// Find the correct driver
+#ifdef ARDUINO
+    #define QUICKI2C_DRIVER_ARDUINO
+#elif defined(ESP_IDF_VERSION_MAJOR)
+    #define QUICKI2C_DRIVER_ESPIDF
+#else
+    #error "Could not determine driver (Arduino or ESP-IDF)"
+#endif
+
+
+// Include the correct driver
+#ifdef QUICKI2C_DRIVER_ARDUINO
+#include <Arduino.h>
 #include <Wire.h>
+#elif defined(QUICKI2C_DRIVER_ESPIDF)
+#include <driver/i2c.h>
+#endif
 
 #include "expected.hpp"
 
@@ -114,7 +130,18 @@ enum class QuickI2CStatus : int8_t {
      * Write succeeded but reading the register did not result in the correct value.
      * Check the rxbuf to see what the chip returned.
      */
-    VerifyMismatch = 4 // Write succeeded, but verify failed
+    VerifyMismatch = 4, // Write succeeded, but verify failed
+    /**
+     * The IO operation did not succeed because the bus was busy
+     * and not unlocked within the timeout
+     */
+    BusBusy = 5,
+    /**
+     * The IO operation did not succeed because the I2C device
+     * has not been initialized properly
+     */
+    DriverNotInitialized = 6,
+    UnknownError = 7,
 };
 
 const char* QuickI2CStatusToString(QuickI2CStatus status);
@@ -227,7 +254,16 @@ enum class name : uint32_t
  */
 class QuickI2CDevice {
 public:
-    QuickI2CDevice(uint16_t address, TwoWire& wire = Wire, uint32_t i2cClockSpeed = 400000);
+    QuickI2CDevice(
+        uint8_t address,
+        #ifdef QUICKI2C_DRIVER_ARDUINO
+        TwoWire& wire = Wire,
+        #elif defined(QUICKI2C_DRIVER_ESPIDF)
+        i2c_port_t port = I2C_NUM_0,
+        #endif
+        uint32_t i2cClockSpeed = 400000,
+        uint32_t timeout = 100 /* ms */
+    );
 
     tl::expected<uint8_t, QuickI2CStatus>  read8BitRegister(uint8_t registerAddress);
     tl::expected<uint16_t, QuickI2CStatus>  read16BitRegister(uint8_t registerAddress);
@@ -279,13 +315,24 @@ protected:
      * (plus some extra for safety)
      */
     uint32_t computeTimeout(size_t bytesToTransfer);
+    #ifdef QUICKI2C_DRIVER_ESPIDF
+    uint8_t txbuf[32];
+    #endif
     uint8_t rxbuf[32]; // For write & verify
 
+    #ifdef QUICKI2C_DRIVER_ARDUINO
     TwoWire& wire;
+    #elif defined(QUICKI2C_DRIVER_ESPIDF)
+    i2c_port_t port;
+    #endif
     /**
      * Device address on the I2C bus.
      */
-    uint16_t address;
+    uint8_t deviceAddress;
+    /**
+     * timeout in milliseconds
+     */
+    uint32_t timeout;
 
     uint32_t i2cClockSpeed;
 };

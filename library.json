@@ -22,6 +22,6 @@
     "dependencies": {
       "Wire": "*"
     },
-    "frameworks": "arduino",
+    "frameworks": ["arduino", "esp-idf"],
     "platforms": "*"
 }
