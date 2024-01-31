@@ -1,5 +1,7 @@
 #include "QuickI2C.h"
 
+#include <string.h> // memcmp
+
 const char* QuickI2CStatusToString(QuickI2CStatus status) {
     if(status == QuickI2CStatus::OK) {
         return "OK";
@@ -141,7 +143,11 @@ QuickI2CStatus QuickI2CDevice::writeAndVerifyData(uint8_t readAddress, uint8_t w
         return rc;
     }
     // Insert grace time between write and read
-    delay(delayBetweenWriteAndRead);
+    #ifdef QUICKI2C_DRIVER_ARDUINO
+        delay(delayBetweenWriteAndRead);
+    #elif defined(QUICKI2C_DRIVER_ESPIDF)
+        vTaskDelay(delayBetweenWriteAndRead / portTICK_PERIOD_MS);
+    #endif
     // Read back data for verify
     rc = readData(readAddress, rxbuf, len);
     if(rc != QuickI2CStatus::OK) {
