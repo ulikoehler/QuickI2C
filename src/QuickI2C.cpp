@@ -87,7 +87,7 @@ QuickI2CStatus QuickI2CDevice::readData(uint8_t registerAddress, uint8_t* buf, s
     #ifdef QUICKI2C_DRIVER_ARDUINO
         // Configure clock speed & timeout
         wire.setClock(this->i2cClockSpeed);
-        wire.setTimeout(this->computeTimeout(len));
+        wire.setTimeout(timeout);
         // Transmit address
         wire.beginTransmission(this->deviceAddress);
         wire.write(registerAddress);

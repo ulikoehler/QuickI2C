@@ -261,7 +261,7 @@ public:
         #elif defined(QUICKI2C_DRIVER_ESPIDF)
         i2c_port_t port = I2C_NUM_0,
         #endif
-        uint32_t i2cClockSpeed = 400000,
+        uint32_t i2cClockSpeed = 400000, /* Hz */
         uint32_t timeout = 100 /* ms */
     );
 
