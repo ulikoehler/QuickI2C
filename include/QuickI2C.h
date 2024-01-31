@@ -204,7 +204,7 @@ enum class name : uint32_t
 
 #define QUICKI2C_DEFINE_REGISTER32_RO(name, addr)\
 static constexpr uint8_t name##Address = addr;\
-inline uint32_t read##name() {return _EXPECTED_TRANSFORM(addr, postprocessRead32, read32BitRegister);}\
+inline tl::expected<uint32_t, QuickI2CStatus> read##name() {return _EXPECTED_TRANSFORM(addr, postprocessRead32, read32BitRegister);}\
 enum class name : uint32_t
 
 /**
