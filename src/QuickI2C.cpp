@@ -190,7 +190,7 @@ tl::expected<uint32_t, QuickI2CStatus> QuickI2CDevice::read24BitRegister(uint8_t
 
 tl::expected<uint32_t, QuickI2CStatus> QuickI2CDevice::read32BitRegister(uint8_t registerAddress) {
     uint32_t ret = 0;
-    QuickI2CStatus status = readData(registerAddress, (uint8_t*)&ret, 4);
+    QuickI2CStatus status = readData(registerAddress, (uint8_t*)&ret, sizeof(uint32_t));
     if(status != QuickI2CStatus::OK) {
         return tl::unexpected<QuickI2CStatus>(status);
     }

@@ -170,7 +170,10 @@ typedef uint32_t (*Postprocessor32Bit)(uint8_t, uint32_t);
 static constexpr uint8_t name##ReadAddress = (raddr);\
 static constexpr uint8_t name##WriteAddress = (waddr);\
 
-#define _EXPECTED_TRANSFORM(raddr, postproc, read) read8BitRegister((raddr)).transform([](uint8_t val) {return (postproc)((raddr), val);})
+#define _EXPECTED_TRANSFORM8(raddr, postproc, read) read8BitRegister((raddr)).transform([](uint8_t val) {return (postproc)((raddr), val);})
+#define _EXPECTED_TRANSFORM16(raddr, postproc, read) read16BitRegister((raddr)).transform([](uint16_t val) {return (postproc)((raddr), val);})
+#define _EXPECTED_TRANSFORM24(raddr, postproc, read) read24BitRegister((raddr)).transform([](uint32_t val) {return (postproc)((raddr), val);})
+#define _EXPECTED_TRANSFORM32(raddr, postproc, read) read32BitRegister((raddr)).transform([](uint32_t val) {return (postproc)((raddr), val);})
 
 /**
  * Define a Read-Write register and its associated functions on
@@ -180,7 +183,7 @@ static constexpr uint8_t name##WriteAddress = (waddr);\
 #define QUICKI2C_DEFINE_REGISTER8_RW(name, raddr, waddr)\
 enum class name : uint8_t;\
 _DEFINE_READ_WRITE_ADDRESS_MEMBERS(name, raddr, waddr)\
-inline tl::expected<uint8_t, QuickI2CStatus> read##name() {return _EXPECTED_TRANSFORM(raddr, postprocessRead8, read8BitRegister);}\
+inline tl::expected<uint8_t, QuickI2CStatus> read##name() {return _EXPECTED_TRANSFORM8(raddr, postprocessRead8, read8BitRegister);}\
 inline void write##name(uint8_t val) {write8BitRegister((waddr), postprocessWrite8((waddr), val));}\
 inline void write##name(name val) {write8BitRegister((waddr), postprocessWrite8((waddr), static_cast<uint8_t>(val)));}\
 inline QuickI2CStatus writeAndVerify##name(uint8_t val) {return writeAndVerify8BitRegister((raddr), (waddr), postprocessWrite8((waddr), val));}\
@@ -216,22 +219,22 @@ enum class name : uint32_t
 // Read-only register definitions
 #define QUICKI2C_DEFINE_REGISTER8_RO(name, addr)\
 static constexpr uint8_t name##Address = addr;\
-inline tl::expected<uint8_t, QuickI2CStatus> read##name() {return _EXPECTED_TRANSFORM(addr, postprocessRead8, read8BitRegister);}\
+inline tl::expected<uint8_t, QuickI2CStatus> read##name() {return _EXPECTED_TRANSFORM8(addr, postprocessRead8, read8BitRegister);}\
 enum class name : uint8_t
 
 #define QUICKI2C_DEFINE_REGISTER16_RO(name, addr)\
 static constexpr uint8_t name##Address = addr;\
-inline tl::expected<uint16_t, QuickI2CStatus> read##name() {return _EXPECTED_TRANSFORM(addr, postprocessRead16, read16BitRegister);}\
+inline tl::expected<uint16_t, QuickI2CStatus> read##name() {return _EXPECTED_TRANSFORM16(addr, postprocessRead16, read16BitRegister);}\
 enum class name : uint16_t
 
 #define QUICKI2C_DEFINE_REGISTER24_RO(name, addr)\
 static constexpr uint8_t name##Address = addr;\
-inline tl::expected<uint32_t, QuickI2CStatus> read##name() {return _EXPECTED_TRANSFORM(addr, postprocessRead24, read24BitRegister);}\
+inline tl::expected<uint32_t, QuickI2CStatus> read##name() {return _EXPECTED_TRANSFORM32(addr, postprocessRead24, read24BitRegister);}\
 enum class name : uint32_t
 
 #define QUICKI2C_DEFINE_REGISTER32_RO(name, addr)\
 static constexpr uint8_t name##Address = addr;\
-inline tl::expected<uint32_t, QuickI2CStatus> read##name() {return _EXPECTED_TRANSFORM(addr, postprocessRead32, read32BitRegister);}\
+inline tl::expected<uint32_t, QuickI2CStatus> read##name() {return _EXPECTED_TRANSFORM32(addr, postprocessRead32, read32BitRegister);}\
 enum class name : uint32_t
 
 /**
