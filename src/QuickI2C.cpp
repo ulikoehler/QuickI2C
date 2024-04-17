@@ -137,7 +137,7 @@ QuickI2CStatus QuickI2CDevice::writeAndVerify32BitRegister(uint8_t registerAddre
 }
 
 
-uint32_t QuickI2CDevice::computeTimeout(uint32_t bytesToTransfer) {
+uint32_t QuickI2CDevice::computeTimeout(size_t bytesToTransfer) {
     uint32_t numBits = bytesToTransfer * 9; // 8 data bits + 1 ACK/NACK bit per byte
     // NOTE: We avoid to use floating point arithmetic here.
     uint32_t durationMilliseconds = numBits * 1000 / this->i2cClockSpeed; // This will ALWAYS be rounded down!
