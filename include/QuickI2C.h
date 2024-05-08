@@ -4,12 +4,12 @@
 #include <stddef.h>
 
 // Find the correct driver
-#ifdef ARDUINO
+#if defined(ARDUINO) && !defined(QUICKI2C_DISABLE_ARDUINO)
     #define QUICKI2C_DRIVER_ARDUINO
-#elif defined(IDF_VER) && !defined(ARDUINO)
+#elif defined(IDF_VER) && !defined(QUICKI2C_DISABLE_ESP_IDF)
     #define QUICKI2C_DRIVER_ESPIDF
 #else
-    #error "Could not determine driver (Arduino or ESP-IDF)"
+    #error "Could not determine I2C driver (Arduino or ESP-IDF)"
 #endif
 
 
