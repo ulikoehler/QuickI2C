@@ -100,8 +100,6 @@ constexpr typename std::enable_if<std::is_enum<T>::value && std::is_integral<I>:
 
 }
 
-#endif // QUICKI2C_NO_ENUM_OPERATIONS
-
 /**
  * @brief Define multiplication of enum classes (register definitions) and numbers
  */
@@ -118,6 +116,7 @@ constexpr typename std::enable_if<std::is_enum<T>::value && std::is_integral<I>:
 
 }
 
+#endif // QUICKI2C_NO_ENUM_OPERATIONS
 
 enum class QuickI2CStatus : int8_t {
     OK = 0,
