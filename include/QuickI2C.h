@@ -25,6 +25,9 @@
 
 #include <type_traits>
 
+#if !defined(QUICKI2C_NO_ENUM_OPERATIONS) && !defined(QUICKSPI_ENUM_OPERATIONS)
+#define QUICKI2C_ENUM_OPERATIONS
+
 /**
  * @brief Define ORing of two enum classes (register definitions)
  */
@@ -96,6 +99,8 @@ constexpr typename std::enable_if<std::is_enum<T>::value && std::is_integral<I>:
     return lhs - static_cast<typename std::underlying_type<T>::type>(rhs);
 
 }
+
+#endif // QUICKI2C_NO_ENUM_OPERATIONS
 
 /**
  * @brief Define multiplication of enum classes (register definitions) and numbers
