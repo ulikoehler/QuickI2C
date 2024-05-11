@@ -196,6 +196,7 @@ inline tl::expected<uint8_t, QuickI2CStatus> read##name() {return _EXPECTED_TRAN
 inline void write##name(uint8_t val) {write8BitRegister((waddr), postprocessWrite8((waddr), val));}\
 inline void write##name(name val) {write8BitRegister((waddr), postprocessWrite8((waddr), static_cast<uint8_t>(val)));}\
 inline QuickI2CStatus writeAndVerify##name(uint8_t val) {return writeAndVerify8BitRegister((raddr), (waddr), postprocessWrite8((waddr), val));}\
+inline QuickI2CStatus writeAndVerify##name(name val) {return writeAndVerify8BitRegister((raddr), (waddr), postprocessWrite8((waddr), static_cast<uint8_t>(val)));}\
 enum class name : uint8_t
 
 #define QUICKI2C_DEFINE_REGISTER16_RW(name, raddr, waddr)\
@@ -205,6 +206,7 @@ inline tl::expected<uint16_t, QuickI2CStatus> read##name() {return postprocessRe
 inline void write##name(uint16_t val) {write16BitRegister((waddr), postprocessWrite16((waddr), val));}\
 inline void write##name(name val) {write16BitRegister((waddr), postprocessWrite16((waddr), static_cast<uint16_t>(val)));}\
 inline QuickI2CStatus writeAndVerify##name(uint16_t val) {return writeAndVerify16BitRegister((raddr), (waddr), postprocessWrite16((waddr), val));}\
+inline QuickI2CStatus writeAndVerify##name(name val) {return writeAndVerify16BitRegister((raddr), (waddr), postprocessWrite16((waddr), static_cast<uint16_t>(val)));}\
 enum class name : uint16_t
 
 #define QUICKI2C_DEFINE_REGISTER24_RW(name, raddr, waddr)\
@@ -214,6 +216,7 @@ inline tl::expected<uint32_t, QuickI2CStatus> read##name() {return postprocessRe
 inline void write##name(uint32_t val) {return write24BitRegister((waddr), postprocessWrite24((waddr), val));}\
 inline void write##name(name val) {return write24BitRegister((waddr), postprocessWrite24((waddr), static_cast<uint32_t>(val)));}\
 inline QuickI2CStatus writeAndVerify##name(uint32_t val) {return writeAndVerify24BitRegister((raddr), (waddr), postprocessWrite24((waddr), val));}\
+inline QuickI2CStatus writeAndVerify##name(name val) {return writeAndVerify24BitRegister((raddr), (waddr), postprocessWrite24((waddr), static_cast<uint32_t>(val)));}\
 enum class name : uint32_t
 
 #define QUICKI2C_DEFINE_REGISTER32_RW(name, raddr, waddr)\
@@ -223,6 +226,7 @@ inline tl::expected<uint32_t, QuickI2CStatus> read##name() {return postprocessRe
 inline void write##name(uint32_t val) {return write32BitRegister((waddr), postprocessWrite32((waddr), val));}\
 inline void write##name(name val) {return write16BitRegister((waddr), postprocessWrite32((waddr), static_cast<uint32_t>(val)));}\
 inline QuickI2CStatus writeAndVerify##name(uint32_t val) {return writeAndVerify32BitRegister((raddr), (waddr), postprocessWrite32((waddr), val));}\
+inline QuickI2CStatus writeAndVerify##name(name val) {return writeAndVerify32BitRegister((raddr), (waddr), postprocessWrite32((waddr), static_cast<uint32_t>(val)));}\
 enum class name : uint32_t
 
 // Read-only register definitions
