@@ -111,7 +111,7 @@ QuickI2CStatus QuickI2CDevice::readData(uint8_t registerAddress, uint8_t* buf, s
             }
         #endif
         // Receive data
-        wire.requestFrom(this->address, len);
+        wire.requestFrom(this->deviceAddress, len);
         size_t actuallyRead = wire.readBytes(buf, len);
         if(actuallyRead < len) {
             // Did not read enough bytes
