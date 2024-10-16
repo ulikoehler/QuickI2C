@@ -1,6 +1,6 @@
 {
     "name": "QuickI2C",
-    "version": "2.1.1",
+    "version": "2.1.2",
     "description": "Practical Arduino Wire I2C wrapper, allowing direct register access with proper error handling.",
     "keywords": "I2C, Wire, Arduino",
     "repository":
