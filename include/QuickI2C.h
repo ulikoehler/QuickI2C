@@ -324,6 +324,38 @@ public:
 
     // Delay in milliseconds between write and read during writeAndVerify.
     uint32_t delayBetweenWriteAndRead = 1;
+
+    inline tl::expected<uint8_t, QuickI2CStatus> postprocessRead8(uint8_t address, tl::expected<uint8_t, QuickI2CStatus> rawValue) {
+        return rawValue;
+    }
+
+    inline tl::expected<uint16_t, QuickI2CStatus> postprocessRead16(uint8_t address, tl::expected<uint16_t, QuickI2CStatus> rawValue) {
+        return rawValue;
+    }
+
+    inline tl::expected<uint32_t, QuickI2CStatus> postprocessRead24(uint8_t address, tl::expected<uint32_t, QuickI2CStatus> rawValue) {
+        return rawValue;
+    }
+    
+    inline tl::expected<uint32_t, QuickI2CStatus> postprocessRead32(uint8_t address, tl::expected<uint32_t, QuickI2CStatus> rawValue) {
+        return rawValue;
+    }
+
+    inline uint8_t postprocessWrite8(uint8_t address, uint8_t rawValue) {
+        return rawValue;
+    }
+
+    inline uint16_t postprocessWrite16(uint8_t address, uint16_t rawValue) {
+        return rawValue;
+    }
+
+    inline uint32_t postprocessWrite24(uint8_t address, uint32_t rawValue) {
+        return rawValue;
+    }
+
+    inline uint32_t postprocessWrite32(uint8_t address, uint32_t rawValue) {
+        return rawValue;
+    }
 protected:
     /**
      * Compute the maximum timeout in milliseconds
