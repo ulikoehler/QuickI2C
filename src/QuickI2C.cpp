@@ -48,7 +48,9 @@ QuickI2CStatus QuickI2CDevice::writeData(uint8_t registerAddress, const uint8_t*
         // Transmit address
         wire.beginTransmission(this->deviceAddress);
         wire.write(registerAddress);
-        wire.write(buf, len);
+        if(len > 0) {
+            wire.write(buf, len);
+        }
         #if ESP_ARDUINO_VERSION_MAJOR == 1
             wire.endTransmission();
             // Check for missing
