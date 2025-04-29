@@ -70,7 +70,9 @@ QuickI2CStatus QuickI2CDevice::writeData(uint8_t registerAddress, const uint8_t*
         #endif
     #elif defined(QUICKI2C_DRIVER_ESPIDF)
         txbuf[0] = registerAddress;
-        memcpy(txbuf + 1, buf, len);
+        if(len > 0) {
+            memcpy(txbuf + 1, buf, len);
+        }
         esp_err_t err = i2c_master_write_to_device(port, deviceAddress, this->txbuf, len + 1 /* reg addr + data*/, timeout / portTICK_PERIOD_MS);
         switch(err) {
             case ESP_OK:
