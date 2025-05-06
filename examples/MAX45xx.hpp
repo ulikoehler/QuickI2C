@@ -14,7 +14,7 @@ public:
     static constexpr uint8_t VolatileWiper1Address = 0x01;
     static constexpr uint8_t TCONAddress = 0x04;
 
-    inline QuickI2CStatus readVolatileWiper0(uint16_t* buf) {
+    inline QuickI2CStatus readVolatileWiper0(uint16_t* buf)f {
         return read16BitRegister((VolatileWiper0Address << 4) | CMDReadData, buf);
     }
 
