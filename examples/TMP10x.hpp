@@ -103,49 +103,13 @@ public:
     ) : QuickI2CDevice(static_cast<uint8_t>(address), port, i2cClockSpeed, timeout) {}
     #endif
 
-    /**
-     * @brief Read the 8-bit configuration register.
-     * @return tl::expected<uint8_t, QuickI2CStatus>
-     */
-    inline tl::expected<uint8_t, QuickI2CStatus> readConfiguration() {
-        return read8BitRegister(static_cast<uint8_t>(Register::Configuration));
-    }
+    // Register-level accessors provided by QuickI2C macros
+    QUICKI2C_DEFINE_REGISTER16_RO(TemperatureRegister, 0x00);
+    QUICKI2C_DEFINE_REGISTER8_RW(Configuration, 0x01, 0x01);
+    QUICKI2C_DEFINE_REGISTER16_RW(TLowRegister, 0x02, 0x02);
+    QUICKI2C_DEFINE_REGISTER16_RW(THighRegister, 0x03, 0x03);
 
-    /**
-     * @brief Write the 8-bit configuration register.
-     * @param configuration New configuration value.
-     * @return QuickI2CStatus
-     */
-    inline QuickI2CStatus writeConfiguration(uint8_t configuration) {
-        return write8BitRegister(static_cast<uint8_t>(Register::Configuration), configuration);
-    }
-
-    /**
-     * @brief Write and verify the configuration register.
-     *
-     * Reads back the register and checks that all bits except one-shot bit match.
-     *
-     * @param configuration New configuration value.
-     * @return QuickI2CStatus
-     */
-    inline QuickI2CStatus writeAndVerifyConfiguration(uint8_t configuration) {
-        QuickI2CStatus status = writeConfiguration(configuration);
-        if(status != QuickI2CStatus::OK) {
-            return status;
-        }
-
-        auto readback = readConfiguration();
-        if(!readback) {
-            return readback.error();
-        }
-
-        if(((*readback) & static_cast<uint8_t>(~ConfigurationOneShotMask)) !=
-           (configuration & static_cast<uint8_t>(~ConfigurationOneShotMask))) {
-            return QuickI2CStatus::VerifyMismatch;
-        }
-
-        return QuickI2CStatus::OK;
-    }
+    // Configuration register direct access is provided via QUICKI2C_DEFINE_REGISTER8_RW(Configuration, 0x01, 0x01)
 
     /**
      * @brief Enable or disable shutdown mode.

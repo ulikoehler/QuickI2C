@@ -9,7 +9,8 @@
 /**
  * NOTE: The scaling & offset constants for SMxx31 sensors
  * are part-number-specific and are, for this example,
- * verified on the SM4331-BCE-S-300-000
+ * verified on the SM4331-BCE-S-300-000.
+ * If you have another MPN, you need to change the constants, check the datasheet!
  *
  * Usage example:
  *
