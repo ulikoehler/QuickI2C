@@ -1,6 +1,5 @@
 #pragma once
 #include <QuickI2C.h>
-#include <driver/i2c.h>
 #include <esp_task_wdt.h>
 #include <esp_log.h>
 #include <math.h>
@@ -8,7 +7,7 @@
 /**
  * Usage example:
  *
- *     LPS22HB<> baro(I2C_NUM_0);
+ *     LPS22HB<> baro(QUICKI2C_DEFAULT_PORT);
  *     if (baro.Initialize() != QuickI2CStatus::OK) {
  *         printf("LPS22HB init failed\n");
  *     }
@@ -35,7 +34,7 @@ template<
 >
 class LPS22HB : public QuickI2CDevice {
 public:
-    inline LPS22HB(i2c_port_t port): QuickI2CDevice(0x5C, port, 400000) {} // LPS22HB I2C address
+    inline LPS22HB(QuickI2CPort port = QUICKI2C_DEFAULT_PORT): QuickI2CDevice(0x5C, port, 400000) {} // LPS22HB I2C address
 
     struct PressureAndTemperature {
         float pressure; // Pressure in Pa

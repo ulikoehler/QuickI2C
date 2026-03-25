@@ -7,6 +7,19 @@
 #if defined(ARDUINO) && !defined(QUICKI2C_DISABLE_ARDUINO)
     #define QUICKI2C_DRIVER_ARDUINO
 #elif defined(IDF_VER) && !defined(QUICKI2C_DISABLE_ESP_IDF)
+    #include <sdkconfig.h>
+    #include <esp_idf_version.h>
+
+    #if defined(CONFIG_QUICKI2C_I2C_DRIVER_LEGACY)
+        #define QUICKI2C_DRIVER_ESPIDF_LEGACY
+    #elif defined(CONFIG_QUICKI2C_I2C_DRIVER_NEW)
+        #define QUICKI2C_DRIVER_ESPIDF_NEW
+    #elif ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
+        #define QUICKI2C_DRIVER_ESPIDF_NEW
+    #else
+        #define QUICKI2C_DRIVER_ESPIDF_LEGACY
+    #endif
+
     #define QUICKI2C_DRIVER_ESPIDF
 #else
     #error "Could not determine I2C driver (Arduino or ESP-IDF)"
@@ -17,8 +30,21 @@
 #ifdef QUICKI2C_DRIVER_ARDUINO
 #include <Arduino.h>
 #include <Wire.h>
-#elif defined(QUICKI2C_DRIVER_ESPIDF)
+#elif defined(QUICKI2C_DRIVER_ESPIDF_LEGACY)
 #include <driver/i2c.h>
+#elif defined(QUICKI2C_DRIVER_ESPIDF_NEW)
+#include <driver/i2c_master.h>
+#endif
+
+#ifdef QUICKI2C_DRIVER_ARDUINO
+using QuickI2CPort = TwoWire&;
+#define QUICKI2C_DEFAULT_PORT Wire
+#elif defined(QUICKI2C_DRIVER_ESPIDF_LEGACY)
+using QuickI2CPort = i2c_port_t;
+#define QUICKI2C_DEFAULT_PORT I2C_NUM_0
+#elif defined(QUICKI2C_DRIVER_ESPIDF_NEW)
+using QuickI2CPort = i2c_port_num_t;
+#define QUICKI2C_DEFAULT_PORT I2C_NUM_0
 #endif
 
 #include "expected.hpp"
@@ -272,11 +298,7 @@ class QuickI2CDevice {
 public:
     QuickI2CDevice(
         uint8_t address,
-        #ifdef QUICKI2C_DRIVER_ARDUINO
-        TwoWire& wire = Wire,
-        #elif defined(QUICKI2C_DRIVER_ESPIDF)
-        i2c_port_t port = I2C_NUM_0,
-        #endif
+        QuickI2CPort port = QUICKI2C_DEFAULT_PORT,
         uint32_t i2cClockSpeed = 400000, /* Hz */
         uint32_t timeout = 100 /* ms */
     );
@@ -369,9 +391,9 @@ protected:
     uint8_t rxbuf[32]; // For write & verify
 
     #ifdef QUICKI2C_DRIVER_ARDUINO
-    TwoWire& wire;
+    QuickI2CPort wire;
     #elif defined(QUICKI2C_DRIVER_ESPIDF)
-    i2c_port_t port;
+    QuickI2CPort port;
     #endif
     /**
      * Device address on the I2C bus.

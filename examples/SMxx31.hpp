@@ -1,6 +1,5 @@
 #pragma once
 #include <QuickI2C.h>
-#include <driver/i2c.h>
 #include <math.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
@@ -14,7 +13,7 @@
  *
  * Usage example:
  *
- *     SMxx31<> sensor(I2C_NUM_0);
+ *     SMxx31<> sensor(QUICKI2C_DEFAULT_PORT);
  *     auto pressure = sensor.readPressure();
  *     if (pressure) {
  *         printf("Pressure: %.2f Pa\n", *pressure);
@@ -42,9 +41,9 @@ public:
     /**
      * @brief Construct a new SMxx31 object.
      *
-     * @param port I2C port (I2C_NUM_0 or I2C_NUM_1)
+     * @param port QuickI2C bus port.
      */
-    inline SMxx31(i2c_port_t port): QuickI2CDevice(0x6C, port, 400000) {
+    inline SMxx31(QuickI2CPort port = QUICKI2C_DEFAULT_PORT): QuickI2CDevice(0x6C, port, 400000) {
         // Create mutex for thread-safe pressure readings
         pressure_mutex = xSemaphoreCreateMutex();
         if (pressure_mutex == NULL) {

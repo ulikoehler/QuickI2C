@@ -1,13 +1,12 @@
 #pragma once
 #include <QuickI2C.h>
-#include <driver/i2c.h>
 #include <math.h>
 #include <cstdio>
 
 /**
  * Usage example:
  *
- *     MPL3115 baro(I2C_NUM_0);
+ *     MPL3115 baro(QUICKI2C_DEFAULT_PORT);
  *     if (baro.Initialize() != QuickI2CStatus::OK) {
  *         printf("MPL3115 init failed\n");
  *     }
@@ -25,9 +24,9 @@ public:
     /**
      * @brief Construct a new MPL3115 object
      *
-     * @param port I2C port number (e.g., I2C_NUM_0 or I2C_NUM_1)
+    * @param port QuickI2C bus port.
      */
-    inline MPL3115(i2c_port_t port): QuickI2CDevice(0x60 /* Address */, port, 400000) {}
+    inline MPL3115(QuickI2CPort port = QUICKI2C_DEFAULT_PORT): QuickI2CDevice(0x60 /* Address */, port, 400000) {}
     
     QUICKI2C_DEFINE_REGISTER8_RO(Status, 0x06);
     QUICKI2C_DEFINE_REGISTER8_RW(SysMode, 0x11, 0x11);

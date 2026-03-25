@@ -16,3 +16,15 @@ In PlatformIO, add the library by adding the following to `platformio.ini`:
 lib_deps =
     ulikoehler/QuickI2C@^1.1
 ```
+
+## ESP-IDF driver selection
+
+When building with ESP-IDF, QuickI2C now supports three selection modes via `menuconfig`:
+
+- `Automatic`: use the legacy `driver/i2c.h` backend before ESP-IDF 6.0 and the new `driver/i2c_master.h` backend on ESP-IDF 6.0 and later.
+- `Legacy driver/i2c.h`: always use the deprecated legacy backend.
+- `New driver/i2c_master.h`: always use the new master-bus backend.
+
+## Portable port type
+
+Examples use `QuickI2CPort` and `QUICKI2C_DEFAULT_PORT` instead of platform-specific port types. On Arduino this maps to `Wire`, and on ESP-IDF it maps to `I2C_NUM_0` by default.

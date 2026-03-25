@@ -6,7 +6,7 @@
  */
 class MCP45xx : public QuickI2CDevice {
 public:
-    inline MCP45xx(): QuickI2CDevice(0b0101110, Wire, 25000) {}
+    inline MCP45xx(QuickI2CPort port = QUICKI2C_DEFAULT_PORT): QuickI2CDevice(0b0101110, port, 25000) {}
 
     static constexpr uint8_t CMDWriteData = 0b00 << 2;
     static constexpr uint8_t CMDReadData = 0b11 << 2;

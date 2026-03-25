@@ -7,7 +7,7 @@
 /**
  * Usage example:
  *
- *     TMP10x sensor(TMP10x::Address::GND_GND, I2C_NUM_0);
+ *     TMP10x sensor(TMP10x::Address::GND_GND, QUICKI2C_DEFAULT_PORT);
  *     auto temperature = sensor.readTemperatureCelsius();
  *     if (temperature) {
  *         printf("Temperature: %.2f C\n", *temperature);
@@ -71,37 +71,20 @@ public:
     static constexpr uint8_t GeneralCallResetCommand = 0x06;
     static constexpr uint8_t SmbusAlertResponseAddress = 0x0C;
 
-    #ifdef QUICKI2C_DRIVER_ARDUINO
     /**
-     * @brief Construct a TMP10x object for Arduino Wire driver.
+     * @brief Construct a TMP10x object.
      *
      * @param address TMP10x I2C address configuration.
-     * @param wire TwoWire instance.
+     * @param port QuickI2C bus port.
      * @param i2cClockSpeed I2C bus speed.
      * @param timeout I2C transaction timeout in ms.
      */
     inline TMP10x(
         Address address = Address::GND_GND,
-        TwoWire& wire = Wire,
-        uint32_t i2cClockSpeed = 400000,
-        uint32_t timeout = 100
-    ) : QuickI2CDevice(static_cast<uint8_t>(address), wire, i2cClockSpeed, timeout) {}
-    #elif defined(QUICKI2C_DRIVER_ESPIDF)
-    /**
-     * @brief Construct a TMP10x object for ESP-IDF I2C driver.
-     *
-     * @param address TMP10x I2C address configuration.
-     * @param port i2c_port_t (I2C_NUM_0 or I2C_NUM_1).
-     * @param i2cClockSpeed I2C bus speed.
-     * @param timeout I2C transaction timeout in ms.
-     */
-    inline TMP10x(
-        Address address = Address::GND_GND,
-        i2c_port_t port = I2C_NUM_0,
+        QuickI2CPort port = QUICKI2C_DEFAULT_PORT,
         uint32_t i2cClockSpeed = 400000,
         uint32_t timeout = 100
     ) : QuickI2CDevice(static_cast<uint8_t>(address), port, i2cClockSpeed, timeout) {}
-    #endif
 
     // Register-level accessors provided by QuickI2C macros
     QUICKI2C_DEFINE_REGISTER16_RO(TemperatureRegister, 0x00);
@@ -521,30 +504,31 @@ public:
         return static_cast<uint16_t>(value) << 4;
     }
 
-    #ifdef QUICKI2C_DRIVER_ARDUINO
     inline static QuickI2CStatus latchAddressPins(
-        TwoWire& wire = Wire,
+        QuickI2CPort port = QUICKI2C_DEFAULT_PORT,
         uint32_t i2cClockSpeed = 400000,
         uint32_t timeout = 100
     ) {
-        QuickI2CDevice generalCall(GeneralCallAddress, wire, i2cClockSpeed, timeout);
+        QuickI2CDevice generalCall(GeneralCallAddress, port, i2cClockSpeed, timeout);
         return generalCall.writeData(GeneralCallAddressLatchCommand, nullptr, 0);
     }
 
     inline static QuickI2CStatus generalCallReset(
-        TwoWire& wire = Wire,
+        QuickI2CPort port = QUICKI2C_DEFAULT_PORT,
         uint32_t i2cClockSpeed = 400000,
         uint32_t timeout = 100
     ) {
-        QuickI2CDevice generalCall(GeneralCallAddress, wire, i2cClockSpeed, timeout);
+        QuickI2CDevice generalCall(GeneralCallAddress, port, i2cClockSpeed, timeout);
         return generalCall.writeData(GeneralCallResetCommand, nullptr, 0);
     }
 
     inline static tl::expected<uint8_t, QuickI2CStatus> readSmbusAlertResponse(
-        TwoWire& wire = Wire,
+        QuickI2CPort port = QUICKI2C_DEFAULT_PORT,
         uint32_t i2cClockSpeed = 400000,
         uint32_t timeout = 100
     ) {
+    #ifdef QUICKI2C_DRIVER_ARDUINO
+        TwoWire& wire = port;
         wire.setClock(i2cClockSpeed);
         wire.setTimeout(timeout);
         size_t bytesRead = wire.requestFrom(static_cast<uint8_t>(SmbusAlertResponseAddress), static_cast<uint8_t>(1));
@@ -552,30 +536,7 @@ public:
             return tl::unexpected<QuickI2CStatus>(QuickI2CStatus::SlaveNotResponding);
         }
         return static_cast<uint8_t>(wire.read());
-    }
-    #elif defined(QUICKI2C_DRIVER_ESPIDF)
-    inline static QuickI2CStatus latchAddressPins(
-        i2c_port_t port = I2C_NUM_0,
-        uint32_t i2cClockSpeed = 400000,
-        uint32_t timeout = 100
-    ) {
-        QuickI2CDevice generalCall(GeneralCallAddress, port, i2cClockSpeed, timeout);
-        return generalCall.writeData(GeneralCallAddressLatchCommand, nullptr, 0);
-    }
-
-    inline static QuickI2CStatus generalCallReset(
-        i2c_port_t port = I2C_NUM_0,
-        uint32_t i2cClockSpeed = 400000,
-        uint32_t timeout = 100
-    ) {
-        QuickI2CDevice generalCall(GeneralCallAddress, port, i2cClockSpeed, timeout);
-        return generalCall.writeData(GeneralCallResetCommand, nullptr, 0);
-    }
-
-    inline static tl::expected<uint8_t, QuickI2CStatus> readSmbusAlertResponse(
-        i2c_port_t port = I2C_NUM_0,
-        uint32_t timeout = 100
-    ) {
+    #elif defined(QUICKI2C_DRIVER_ESPIDF_LEGACY)
         uint8_t response = 0;
         esp_err_t err = i2c_master_read_from_device(
             port,
@@ -596,8 +557,46 @@ public:
             default:
                 return tl::unexpected<QuickI2CStatus>(QuickI2CStatus::UnknownError);
         }
-    }
+    #elif defined(QUICKI2C_DRIVER_ESPIDF_NEW)
+        i2c_master_bus_handle_t busHandle = nullptr;
+        esp_err_t err = i2c_master_get_bus_handle(port, &busHandle);
+        if(err != ESP_OK) {
+            return tl::unexpected<QuickI2CStatus>(QuickI2CStatus::DriverNotInitialized);
+        }
+
+        i2c_device_config_t config = {};
+        config.dev_addr_length = I2C_ADDR_BIT_LEN_7;
+        config.device_address = SmbusAlertResponseAddress;
+        config.scl_speed_hz = i2cClockSpeed;
+
+        i2c_master_dev_handle_t deviceHandle = nullptr;
+        err = i2c_master_bus_add_device(busHandle, &config, &deviceHandle);
+        if(err != ESP_OK) {
+            return tl::unexpected<QuickI2CStatus>(QuickI2CStatus::DriverNotInitialized);
+        }
+
+        uint8_t response = 0;
+        err = i2c_master_receive(deviceHandle, &response, 1, static_cast<int>(timeout));
+        esp_err_t cleanupErr = i2c_master_bus_rm_device(deviceHandle);
+        if(err == ESP_OK && cleanupErr != ESP_OK) {
+            err = cleanupErr;
+        }
+
+        switch(err) {
+            case ESP_OK:
+                return response;
+            case ESP_ERR_TIMEOUT:
+                return tl::unexpected<QuickI2CStatus>(QuickI2CStatus::BusBusy);
+            case ESP_ERR_INVALID_RESPONSE:
+                return tl::unexpected<QuickI2CStatus>(QuickI2CStatus::SlaveNotResponding);
+            case ESP_ERR_INVALID_ARG:
+            case ESP_ERR_INVALID_STATE:
+                return tl::unexpected<QuickI2CStatus>(QuickI2CStatus::DriverNotInitialized);
+            default:
+                return tl::unexpected<QuickI2CStatus>(QuickI2CStatus::UnknownError);
+        }
     #endif
+    }
 
 private:
     inline QuickI2CStatus updateConfiguration(uint8_t mask, uint8_t value) {

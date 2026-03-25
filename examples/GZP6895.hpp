@@ -1,12 +1,11 @@
 #pragma once
 #include <QuickI2C.h>
-#include <driver/i2c.h>
 #include <math.h>
 
 /**
  * Usage example:
  *
- *     GZP6895<> sensor(I2C_NUM_0);
+ *     GZP6895<> sensor(QUICKI2C_DEFAULT_PORT);
  *     sensor.Initialize();
  *     auto pressure = sensor.readPressure();
  *     if (pressure) {
@@ -33,7 +32,7 @@ template<
 >
 class GZP6895 : public QuickI2CDevice {
 public:
-    inline GZP6895(i2c_port_t port): QuickI2CDevice(0x6D, /* 0x91 for write */ port, 100000) {}
+    inline GZP6895(QuickI2CPort port = QUICKI2C_DEFAULT_PORT): QuickI2CDevice(0x6D, /* 0x91 for write */ port, 100000) {}
 
     QUICKI2C_DEFINE_REGISTER8_RO(PressureMSB, 0x06) {};
     QUICKI2C_DEFINE_REGISTER8_RO(PressureCSB, 0x07) {};

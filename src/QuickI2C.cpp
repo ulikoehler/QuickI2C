@@ -2,6 +2,43 @@
 
 #include <string.h> // memcmp
 
+#ifdef QUICKI2C_DRIVER_ESPIDF
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#endif
+
+#ifdef QUICKI2C_DRIVER_ESPIDF_NEW
+static QuickI2CStatus quickI2CStatusFromNewDriverError(esp_err_t err) {
+    switch(err) {
+        case ESP_OK:
+            return QuickI2CStatus::OK;
+        case ESP_ERR_TIMEOUT:
+            return QuickI2CStatus::BusBusy;
+        case ESP_ERR_INVALID_RESPONSE:
+            return QuickI2CStatus::SlaveNotResponding;
+        case ESP_ERR_INVALID_ARG:
+        case ESP_ERR_INVALID_STATE:
+            return QuickI2CStatus::DriverNotInitialized;
+        default:
+            return QuickI2CStatus::UnknownError;
+    }
+}
+
+static esp_err_t quickI2CCreateMasterDevice(QuickI2CPort port, uint8_t deviceAddress, uint32_t i2cClockSpeed, i2c_master_dev_handle_t* deviceHandle) {
+    i2c_master_bus_handle_t busHandle = nullptr;
+    esp_err_t err = i2c_master_get_bus_handle(port, &busHandle);
+    if(err != ESP_OK) {
+        return err;
+    }
+
+    i2c_device_config_t config = {};
+    config.dev_addr_length = I2C_ADDR_BIT_LEN_7;
+    config.device_address = deviceAddress;
+    config.scl_speed_hz = i2cClockSpeed;
+    return i2c_master_bus_add_device(busHandle, &config, deviceHandle);
+}
+#endif
+
 const char* QuickI2CStatusToString(QuickI2CStatus status) {
     if(status == QuickI2CStatus::OK) {
         return "OK";
@@ -24,16 +61,12 @@ const char* QuickI2CStatusToString(QuickI2CStatus status) {
 
 QuickI2CDevice::QuickI2CDevice(
     uint8_t address,
-    #ifdef QUICKI2C_DRIVER_ARDUINO
-        TwoWire& wire,
-    #elif defined(QUICKI2C_DRIVER_ESPIDF)
-        i2c_port_t port,
-    #endif
+    QuickI2CPort port,
     uint32_t i2cClockSpeed,
     uint32_t timeout
     ) :
     #ifdef QUICKI2C_DRIVER_ARDUINO
-    wire(wire),
+    wire(port),
     #elif defined(QUICKI2C_DRIVER_ESPIDF)
     port(port),
     #endif
@@ -68,7 +101,7 @@ QuickI2CStatus QuickI2CDevice::writeData(uint8_t registerAddress, const uint8_t*
                 return QuickI2CStatus::OK;
             }
         #endif
-    #elif defined(QUICKI2C_DRIVER_ESPIDF)
+    #elif defined(QUICKI2C_DRIVER_ESPIDF_LEGACY)
         txbuf[0] = registerAddress;
         if(len > 0) {
             memcpy(txbuf + 1, buf, len);
@@ -86,6 +119,26 @@ QuickI2CStatus QuickI2CDevice::writeData(uint8_t registerAddress, const uint8_t*
             default:
                 return QuickI2CStatus::UnknownError;
         }
+    #elif defined(QUICKI2C_DRIVER_ESPIDF_NEW)
+        i2c_master_dev_handle_t deviceHandle = nullptr;
+        esp_err_t err = quickI2CCreateMasterDevice(port, deviceAddress, i2cClockSpeed, &deviceHandle);
+        if(err != ESP_OK) {
+            return quickI2CStatusFromNewDriverError(err);
+        }
+
+        if(len == 0) {
+            err = i2c_master_transmit(deviceHandle, &registerAddress, 1, static_cast<int>(timeout));
+        } else {
+            txbuf[0] = registerAddress;
+            memcpy(txbuf + 1, buf, len);
+            err = i2c_master_transmit(deviceHandle, this->txbuf, len + 1, static_cast<int>(timeout));
+        }
+
+        esp_err_t cleanupErr = i2c_master_bus_rm_device(deviceHandle);
+        if(err == ESP_OK && cleanupErr != ESP_OK) {
+            err = cleanupErr;
+        }
+        return quickI2CStatusFromNewDriverError(err);
     #endif
 }
 
@@ -123,7 +176,7 @@ QuickI2CStatus QuickI2CDevice::readData(uint8_t registerAddress, uint8_t* buf, s
             return QuickI2CStatus::DataTimeout;
         }
         return QuickI2CStatus::OK;
-    #elif defined(QUICKI2C_DRIVER_ESPIDF)
+    #elif defined(QUICKI2C_DRIVER_ESPIDF_LEGACY)
         esp_err_t err = i2c_master_write_read_device(port, deviceAddress, &registerAddress, 1, buf, len, timeout / portTICK_PERIOD_MS);
         switch(err) {
             case ESP_OK:
@@ -137,6 +190,24 @@ QuickI2CStatus QuickI2CDevice::readData(uint8_t registerAddress, uint8_t* buf, s
             default:
                 return QuickI2CStatus::UnknownError;
         }
+    #elif defined(QUICKI2C_DRIVER_ESPIDF_NEW)
+        if(len == 0) {
+            return QuickI2CStatus::OK;
+        }
+
+        i2c_master_dev_handle_t deviceHandle = nullptr;
+        esp_err_t err = quickI2CCreateMasterDevice(port, deviceAddress, i2cClockSpeed, &deviceHandle);
+        if(err != ESP_OK) {
+            return quickI2CStatusFromNewDriverError(err);
+        }
+
+        err = i2c_master_transmit_receive(deviceHandle, &registerAddress, 1, buf, len, static_cast<int>(timeout));
+
+        esp_err_t cleanupErr = i2c_master_bus_rm_device(deviceHandle);
+        if(err == ESP_OK && cleanupErr != ESP_OK) {
+            err = cleanupErr;
+        }
+        return quickI2CStatusFromNewDriverError(err);
     #endif
 }
 

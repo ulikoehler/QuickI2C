@@ -1,0 +1,23 @@
+menu "QuickI2C"
+
+choice QUICKI2C_I2C_DRIVER
+    prompt "ESP-IDF I2C driver"
+    default QUICKI2C_I2C_DRIVER_AUTOMATIC
+    help
+        Select which ESP-IDF I2C master driver QuickI2C uses.
+
+        Automatic uses the legacy driver before ESP-IDF 6.0 and the new
+        master-bus driver on ESP-IDF 6.0 and later.
+
+config QUICKI2C_I2C_DRIVER_AUTOMATIC
+    bool "Automatic"
+
+config QUICKI2C_I2C_DRIVER_LEGACY
+    bool "Legacy driver/i2c.h"
+
+config QUICKI2C_I2C_DRIVER_NEW
+    bool "New driver/i2c_master.h"
+
+endchoice
+
+endmenu

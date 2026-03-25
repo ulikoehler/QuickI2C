@@ -1,12 +1,11 @@
 #pragma once
 #include <QuickI2C.h>
-#include <driver/i2c.h>
 #include <math.h>
 
 /**
  * Usage example:
  *
- *     PCA9544A mux(I2C_NUM_0);
+ *     PCA9544A mux(QUICKI2C_DEFAULT_PORT);
  *     if (mux.SetSwitch(2, true) != QuickI2CStatus::OK) {
  *         printf("PCA9544A switch set failed\n");
  *     }
@@ -15,9 +14,9 @@ class PCA9544A : public QuickI2CDevice {
 public:
     /**
      * @brief Construct a PCA9544A I2C channel multiplexer.
-     * @param port I2C bus port (e.g., I2C_NUM_0).
+    * @param port QuickI2C bus port.
      */
-    inline PCA9544A(i2c_port_t port): QuickI2CDevice(0x70 /* Address */, port, 400000) {}
+    inline PCA9544A(QuickI2CPort port = QUICKI2C_DEFAULT_PORT): QuickI2CDevice(0x70 /* Address */, port, 400000) {}
 
     /**
      * @brief Enable or disable a channel on the multiplexer.
