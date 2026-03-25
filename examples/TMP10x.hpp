@@ -278,7 +278,7 @@ public:
      * @return tl::expected<uint16_t, QuickI2CStatus>
      */
     inline tl::expected<uint16_t, QuickI2CStatus> readTemperatureRegisterRaw() {
-        return readRegister16(static_cast<uint8_t>(Register::Temperature));
+        return readTemperatureRegister();
     }
 
     /**
@@ -310,7 +310,7 @@ public:
      * @return tl::expected<uint16_t, QuickI2CStatus>
      */
     inline tl::expected<uint16_t, QuickI2CStatus> readTLowRegisterRaw() {
-        return readRegister16(static_cast<uint8_t>(Register::TLow));
+        return readTLowRegister();
     }
 
     /**
@@ -396,7 +396,7 @@ public:
      * @return tl::expected<uint16_t, QuickI2CStatus>
      */
     inline tl::expected<uint16_t, QuickI2CStatus> readTHighRegisterRaw() {
-        return readRegister16(static_cast<uint8_t>(Register::THigh));
+        return readTHighRegister();
     }
 
     /**
