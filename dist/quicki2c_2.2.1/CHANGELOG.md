@@ -1,9 +1,5 @@
 # Changelog
 
-## 2.2.2
-
-- Bump version to 2.2.2.
-
 ## 2.2.1
 
 - Added `version`, `description`, `url`, and `license` to `idf_component.yml`.
