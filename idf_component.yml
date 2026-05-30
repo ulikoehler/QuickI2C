@@ -1,4 +1,8 @@
 ## IDF Component Manager Manifest File
+version: "2.2.1"
+description: "Practical (Arduino Wire|ESP-IDF) I2C wrapper, allowing direct register access with proper error handling."
+url: "https://github.com/ulikoehler/QuickI2C"
+license: "Apache-2.0"
 dependencies:
   ## Required IDF version
   idf:
